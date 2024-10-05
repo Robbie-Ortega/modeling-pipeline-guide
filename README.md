@@ -176,8 +176,7 @@ docker-compose --env-file config.env up -d --build
 ### 3. Verify the Services are Running
 Check running containers:
 
-bash
-Copy code
+Terminal
 ```bash
 docker ps
 ```
@@ -202,3 +201,81 @@ Login Credentials:
 
 Access Key (Username): Your MINIO_ROOT_USER from config.env.
 Secret Key (Password): Your MINIO_ROOT_PASSWORD from config.env.
+
+
+## Training and Logging the Model
+### 1. Prepare the Dataset
+Wine Quality Dataset:
+
+Download the Wine Quality dataset from the UCI Machine Learning Repository.
+Save it as wine_quality_df.csv in your project directory.
+
+### 2. Create the Training Script
+Create a file named train_logistic_regression.py with the following content:
+
+```python
+
+import pandas as pd
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+import mlflow
+import mlflow.sklearn
+
+# Set MLflow tracking URI
+mlflow.set_tracking_uri("http://localhost:5000")
+
+# Set experiment name
+mlflow.set_experiment("Wine_Quality_Experiment")
+
+# Load data
+data = pd.read_csv('wine_quality_df.csv')
+
+# Prepare data
+X = data.drop(columns=['quality'])
+y = data['quality']
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Start MLflow run
+with mlflow.start_run():
+    # Model
+    model = LogisticRegression(max_iter=100)
+    model.fit(X_train, y_train)
+
+    # Predict and evaluate
+    y_pred = model.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+
+    # Log params, metrics, and model
+    mlflow.log_param("model_type", "Logistic Regression")
+    mlflow.log_param("max_iter", 100)
+    mlflow.log_metric("accuracy", accuracy)
+    mlflow.sklearn.log_model(model, "model")
+
+    print(f"Model accuracy: {accuracy}")
+```
+Notes:
+
+Ensure that mlflow.set_tracking_uri("http://localhost:5000") points to your tracking server.
+Adjust the dataset path if necessary.
+### 3. Install Python Dependencies
+In your virtual environment or system Python, install the required packages:
+
+```bash
+pip install mlflow pandas scikit-learn
+```
+### 4. Run the Training Script
+Execute the script:
+
+```bash
+python3 train_logistic_regression.py
+```
+Expected Output:
+
+The script should output the model accuracy.
+The run will be logged in MLflow.
+### 5. Verify the Run in MLflow UI
+Navigate to the MLflow UI at http://localhost:5000.
+Find your experiment "Wine_Quality_Experiment" and verify that the run appears with logged parameters, metrics, and artifacts.
