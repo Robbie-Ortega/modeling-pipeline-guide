@@ -169,7 +169,6 @@ Ensure that docker-compose.yml and config.env are in the same directory.
 Run the following command to build and start the services:
 
 bash
-Copy code
 ```bash
 docker-compose --env-file config.env up -d --build
 ```
@@ -207,7 +206,7 @@ Secret Key (Password): Your MINIO_ROOT_PASSWORD from config.env.
 ### 1. Prepare the Dataset
 Wine Quality Dataset:
 
-Download the Wine Quality dataset from the UCI Machine Learning Repository.
+Download the [Wine Quality dataset](https://archive.ics.uci.edu/dataset/186/wine+quality) from the [UCI Machine Learning Repository](https://archive.ics.uci.edu/).
 Save it as wine_quality_df.csv in your project directory.
 
 ### 2. Create the Training Script
