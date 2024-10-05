@@ -193,7 +193,7 @@ Access MinIO Console:
 
 Open your browser and navigate to:
 
-Copy code
+
 ```bash
 http://localhost:9001
 ```
@@ -279,3 +279,165 @@ The run will be logged in MLflow.
 ### 5. Verify the Run in MLflow UI
 Navigate to the MLflow UI at http://localhost:5000.
 Find your experiment "Wine_Quality_Experiment" and verify that the run appears with logged parameters, metrics, and artifacts.
+
+## Tuning and Evaluation
+### 1. Modify Hyperparameters
+Edit train_logistic_regression.py and change hyperparameters, such as max_iter:
+
+```python
+
+# Example: Increase max_iter
+model = LogisticRegression(max_iter=200)
+```
+### 2. Rerun the Training Script
+Execute the script again:
+
+```bash
+python3 train_logistic_regression.py
+```
+### 3. Compare Runs in MLflow
+In the MLflow UI, compare the runs to see how changes in hyperparameters affect the model performance.
+## Serving the Model
+### 1. Identify the Best Model's Run ID
+In the MLflow UI, select the run corresponding to the best model.
+Copy the Run ID from the run details page.
+### 2. Set Environment Variables for Model Serving
+In your terminal, set the following environment variables:
+
+```bash
+export MLFLOW_TRACKING_URI=http://localhost:5000
+export AWS_ACCESS_KEY_ID=your_minio_access_key
+export AWS_SECRET_ACCESS_KEY=your_minio_secret_key
+export AWS_DEFAULT_REGION=us-east-1
+export MLFLOW_S3_ENDPOINT_URL=http://localhost:9000
+export MLFLOW_S3_IGNORE_TLS=true
+export AWS_S3_PATH_STYLE=true
+```
+Note: Replace your_minio_access_key and your_minio_secret_key with your actual MinIO credentials from config.env.
+
+### 3. Install Any Additional Dependencies
+Ensure all model dependencies are installed in your environment:
+
+```bash
+pip install mlflow scikit-learn pandas
+```
+### 4. Serve the Model
+Run the following command to serve the model:
+
+```bash
+mlflow models serve -m "runs:/RUN_ID/model" -p 5001 --env-manager=local
+```
+Replace RUN_ID with your actual Run ID.
+
+Wait for the server to start. You should see logs indicating the server is running.
+
+## Testing the Served Model
+### 1. Prepare the Input Data
+Create a file named input.json with the following content:
+
+```json
+
+{
+  "inputs": [
+    {
+      "fixed acidity": 7.4,
+      "volatile acidity": 0.70,
+      "citric acid": 0.00,
+      "residual sugar": 1.9,
+      "chlorides": 0.076,
+      "free sulfur dioxide": 11,
+      "total sulfur dioxide": 34,
+      "density": 0.9978,
+      "pH": 3.51,
+      "sulphates": 0.56,
+      "alcohol": 9.4
+    },
+    {
+      "fixed acidity": 7.8,
+      "volatile acidity": 0.88,
+      "citric acid": 0.00,
+      "residual sugar": 2.6,
+      "chlorides": 0.098,
+      "free sulfur dioxide": 25,
+      "total sulfur dioxide": 67,
+      "density": 0.9968,
+      "pH": 3.20,
+      "sulphates": 0.68,
+      "alcohol": 9.8
+    }
+  ]
+}
+```
+Ensure the feature names match your model's expectations.
+
+### 2. Send a Prediction Request Using curl
+Run the following command:
+
+```bash
+curl -X POST -H "Content-Type: application/json" --data @input.json http://127.0.0.1:5001/invocations
+```
+Expected Output:
+
+```json
+{"predictions": [5, 5]}
+```
+### 3. Send a Prediction Request Using Python (Optional)
+Create a script named test_prediction.py with the following content:
+
+```python
+import requests
+
+data = {
+    "inputs": [
+        {
+            "fixed acidity": 7.4,
+            "volatile acidity": 0.70,
+            "citric acid": 0.00,
+            "residual sugar": 1.9,
+            "chlorides": 0.076,
+            "free sulfur dioxide": 11,
+            "total sulfur dioxide": 34,
+            "density": 0.9978,
+            "pH": 3.51,
+            "sulphates": 0.56,
+            "alcohol": 9.4
+        },
+        {
+            "fixed acidity": 7.8,
+            "volatile acidity": 0.88,
+            "citric acid": 0.00,
+            "residual sugar": 2.6,
+            "chlorides": 0.098,
+            "free sulfur dioxide": 25,
+            "total sulfur dioxide": 67,
+            "density": 0.9968,
+            "pH": 3.20,
+            "sulphates": 0.68,
+            "alcohol": 9.8
+        }
+    ]
+}
+
+response = requests.post(
+    url='http://127.0.0.1:5001/invocations',
+    headers={'Content-Type': 'application/json'},
+    json=data
+)
+
+print("Predictions:", response.json())
+```
+Install the requests library if needed:
+
+```bash
+pip install requests
+```
+Run the script:
+
+```bash
+python test_prediction.py
+```
+Expected Output:
+
+```css
+Predictions: {'predictions': [5, 5]}
+```
