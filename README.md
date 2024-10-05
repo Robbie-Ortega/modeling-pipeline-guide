@@ -160,6 +160,7 @@ services:
 networks:
   backend:
     driver: bridge
+```
 Notes:
 
 The variables in ${...} are sourced from your config.env file.
