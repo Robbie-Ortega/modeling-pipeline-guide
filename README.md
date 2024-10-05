@@ -170,29 +170,34 @@ Run the following command to build and start the services:
 
 bash
 Copy code
+```bash
 docker-compose --env-file config.env up -d --build
+```
 ### 3. Verify the Services are Running
 Check running containers:
 
 bash
 Copy code
+```bash
 docker ps
+```
 You should see containers for mlflow_server, mlflow_create_buckets, mlflow_minio, and mlflow_db.
 
 Access MLflow UI:
 
 Open your browser and navigate to:
 
-arduino
-Copy code
+```bash
 http://localhost:5000
+```
 Access MinIO Console:
 
 Open your browser and navigate to:
 
-arduino
 Copy code
+```bash
 http://localhost:9001
+```
 Login Credentials:
 
 Access Key (Username): Your MINIO_ROOT_USER from config.env.
