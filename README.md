@@ -35,7 +35,7 @@ Open your terminal and run:
 ```bash
 mkdir modeling-pipeline-guide
 cd modeling-pipeline-guide
-
+```
 ### 2. Create `config.env.example` File
 
 Create a file named `config.env.example` in your project directory with the following content:
